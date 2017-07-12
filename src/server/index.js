@@ -5,10 +5,13 @@ import express from 'express'
 import path from 'path'
 import fs from 'fs'
 import request from 'request'
+import dotenv from 'dotenv'
 import { Server } from 'http'
 
 import { WEB_PORT, STATIC_PATH } from '../shared/config'
 import { isProd } from '../shared/util'
+
+dotenv.config()
 
 const app = express()
 // flow-disable-next-line
@@ -23,7 +26,7 @@ app.get('/auth', (req, res) => {
 
 app.get('/auth/redirect', (req, res) => {
   const options = {
-    uri: `https://slack.com/api/oauth.access?code=${req.query.code}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&redirect_uri=${process.env.REDIRECT_URI}`,
+    uri: `https://slack.com/api/oauth.access?code=${req.query.code}&client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}&redirect_uri=${process.env.SLACK_REDIRECT_URI}`,
     method: 'GET',
   }
   request(options, (error, response, body) => {
