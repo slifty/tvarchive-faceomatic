@@ -33,14 +33,13 @@ app.get('/auth/redirect', (req, res) => {
     const JSONresponse = JSON.parse(body)
     if (!JSONresponse.ok) {
       // eslint-disable-next-line no-console
-      console.log(JSONresponse)
       res.send(`Error encountered: \n${JSON.stringify(JSONresponse)}`).status(200).end()
     } else {
       // eslint-disable-next-line no-console
-      console.log(JSONresponse)
-
-      const file = path.join(__dirname, '../../webhooks.txt')
-      fs.appendFileSync(file, JSONresponse.incoming_webhook)
+      const webhooksFile = path.join(__dirname, '../../webhooks.txt')
+      const payloadsFile = path.join(__dirname, '../../payloads.txt')
+      fs.appendFileSync(webhooksFile, `${JSONresponse.incoming_webhook.url}\n\r`)
+      fs.appendFileSync(payloadsFile, `${body}\n\r`)
       res.send('Success!')
     }
   })
