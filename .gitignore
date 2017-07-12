@@ -62,3 +62,5 @@ typings/
 # compiled files
 lib/
 dist/
+
+webhooks.txt
