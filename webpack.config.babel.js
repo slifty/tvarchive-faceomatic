@@ -9,7 +9,7 @@ import { isProd } from './src/shared/util'
 export default {
   entry: [
     'react-hot-loader/patch',
-    './src/client',
+    './src/server',
   ],
   output: {
     filename: 'js/bundle.js',
