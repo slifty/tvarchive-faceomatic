@@ -269,14 +269,14 @@ function getMatroidResults(matroidVideoId, callback) {
 function runMatroid(videoPath, index, callback) {
   startMatroidProcessing(videoPath, (matroidVideoId) => {
     getMatroidResults(matroidVideoId, (results) => {
-      // Clean up the video slice
-      fs.unlink(videoPath)
-
       // Package the results
       const finalResults = {
         duration: getDuration(videoPath),
         results,
       }
+
+      // Clean up the video slice
+      fs.unlink(videoPath)
       callback(finalResults, index)
     })
   })
