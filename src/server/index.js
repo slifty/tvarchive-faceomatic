@@ -450,15 +450,15 @@ function processProgram(program) {
         storeResults(fullResults, program)
         announceResults(fullResults, program)
         fs.renameSync(paths.processingPath, paths.processedPath)
+
+        // Clean up the video file
+        fs.unlink(paths.videoPath)
       }
     }
     for (let i = 0; i < videos.length; i += 1) {
       const video = videos[i]
       runMatroid(video, i, watchResults)
     }
-
-    // Clean up the video file
-    fs.unlink(paths.videoPath)
   })
 }
 
@@ -476,6 +476,7 @@ function getUnprocessedProgramIds() {
 
 // Set up scheduled download of program IDs
 schedule.scheduleJob('* * * * *', () => {
+  console.log('Checking for unprocessed programs...')
   getPrograms((programIds) => {
     const programList = filterPrograms(programIds)
     registerPrograms(programList)
