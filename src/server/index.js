@@ -97,6 +97,7 @@ function getPaths(programId) {
     videoPath: path.join(__dirname, `../../videos/${programId}.mp4`),
     ffmpegOutputPath: path.join(__dirname, `../../videos/${programId}_ffmpeg.out`),
     matroidOutputPath: path.join(__dirname, `../../results/${programId}.json`),
+    processedOutputPath: path.join(__dirname, `../../results/${programId}_processed.json`),
   }
 }
 
@@ -252,6 +253,8 @@ function getMatroidResults(matroidVideoId, callback) {
       }
 
       if (JSONresponse.classification_progress !== 100) {
+        console.log(`    PROCESSING: ${JSONresponse.classification_progress} :: ${matroidVideoId}`)
+
         setTimeout(() => {
           getMatroidResults(matroidVideoId, callback)
         }, 10000)
@@ -266,6 +269,10 @@ function getMatroidResults(matroidVideoId, callback) {
 function runMatroid(videoPath, index, callback) {
   startMatroidProcessing(videoPath, (matroidVideoId) => {
     getMatroidResults(matroidVideoId, (results) => {
+      // Clean up the video slice
+      fs.unlink(videoPath)
+
+      // Package the results
       const finalResults = {
         duration: getDuration(videoPath),
         results,
@@ -296,6 +303,8 @@ function loadSlackWebhooks() {
 function announceResults(fullResults, program) {
   // Generate the results and send them to all the slack buddies
   console.log(`  RESULTS: ${program.id}`)
+
+  const paths = getPaths(program.id)
 
   let cursor = 0
   const processedResults = {}
@@ -349,6 +358,9 @@ function announceResults(fullResults, program) {
       cursor += duration
     }
   }
+
+  // Store the processed results for debugging
+  fs.writeFileSync(paths.processedOutputPath, JSON.stringify(processedResults))
 
   let finalString = ''
   finalString += '======================'
@@ -430,9 +442,9 @@ function processProgram(program) {
     let counter = videos.length
     console.log(`  SPLIT: (${videos.length} total) :: ${program.id}`)
     const watchResults = (results, index) => {
-      console.log(`  PROCESSED: Index ${index} (${counter} remaining) :: ${program.id}`)
       fullResults[index] = results
       counter -= 1
+      console.log(`  PROCESSED: Index ${index} (${counter} remaining) :: ${program.id}`)
       if (counter === 0) {
         // All done
         storeResults(fullResults, program)
@@ -444,6 +456,9 @@ function processProgram(program) {
       const video = videos[i]
       runMatroid(video, i, watchResults)
     }
+
+    // Clean up the video file
+    fs.unlink(paths.videoPath)
   })
 }
 
