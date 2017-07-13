@@ -67,6 +67,11 @@ function getPrograms(callback) {
   })
 }
 
+// eslint-disable-next-line no-unused-vars
+function generalRequestHandler(error, response, body) {
+
+}
+
 function parseProgramId(programId) {
   const parts = programId.split('_')
   const network = parts.shift()
@@ -414,7 +419,7 @@ function announceResults(fullResults, program) {
           text: finalString,
         },
       }
-      request(options, () => {})
+      request(options, generalRequestHandler)
     }
   }
 }
