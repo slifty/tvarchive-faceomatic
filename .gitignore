@@ -63,5 +63,10 @@ typings/
 lib/
 dist/
 
+# process files
+programs/*.json
+videos/*.mp4
+videos/*.out
+results/*.json
 webhooks.txt
 payloads.txt
