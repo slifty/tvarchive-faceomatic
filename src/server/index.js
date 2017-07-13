@@ -185,7 +185,7 @@ function getDuration(videoPath) {
   const output = execSync(cmd, {
     encoding: 'utf8',
   })
-  return output.trim()
+  return parseInt(output.trim(), 10)
 }
 
 function getAccessToken(callback) {
@@ -303,7 +303,6 @@ function loadSlackWebhooks() {
 function announceResults(fullResults, program) {
   // Generate the results and send them to all the slack buddies
   console.log(`  RESULTS: ${program.id}`)
-
   const paths = getPaths(program.id)
 
   let cursor = 0
@@ -328,9 +327,9 @@ function announceResults(fullResults, program) {
     // Loop through each second
     const detectedSeconds = Object.keys(detections)
     for (let j = 0; j < detectedSeconds.length; j += 1) {
-      let second = detectedSeconds[j]
+      const second = detectedSeconds[j]
       const detection = detections[second]
-      second += cursor
+      const adjustedSecond = parseInt(second, 10) + cursor
 
       // Loop through each face result
       const detectedLabelIds = Object.keys(detection)
@@ -352,11 +351,11 @@ function announceResults(fullResults, program) {
 
         // Only count hits with more than 90% confidence
         if (maxScore > 90) {
-          processedResults[label][second] = maxScore
+          processedResults[label][adjustedSecond] = maxScore
         }
       }
-      cursor += duration
     }
+    cursor += parseInt(duration, 10)
   }
 
   // Store the processed results for debugging
@@ -415,7 +414,7 @@ function announceResults(fullResults, program) {
           text: finalString,
         },
       }
-      request(options)
+      request(options, () => {})
     }
   }
 }
