@@ -371,7 +371,7 @@ function announceResults(fullResults, program) {
   finalString += `\n<https://archive.org/details/${program.id}|${program.network},${program.program},${program.airtime}>`
 
   const processedLabels = Object.keys(processedResults)
-  for (let i = 0; i < processedResults.length; i += 1) {
+  for (let i = 0; i < processedLabels.length; i += 1) {
     const label = processedLabels[i]
     const results = processedResults[label]
     if (results.length === 0) {
