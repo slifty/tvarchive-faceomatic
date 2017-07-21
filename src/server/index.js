@@ -398,6 +398,10 @@ function announceResults(fullResults, program) {
       label: 'trump',
       display: 'Donald Trump',
     },
+    {
+      label: 'mccain',
+      display: 'Guest Face: John McCain',
+    },
   ]
 
   for (let i = 0; i < displayTable.length; i += 1) {
