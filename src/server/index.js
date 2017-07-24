@@ -7,6 +7,7 @@ import fs from 'fs'
 import request from 'request'
 import dotenv from 'dotenv'
 import schedule from 'node-schedule'
+import moment from 'moment'
 import { execSync } from 'child_process'
 import { leftPad } from 'left-pad'
 
@@ -367,41 +368,76 @@ function announceResults(fullResults, program) {
   // Store the processed results for debugging
   fs.writeFileSync(paths.processedOutputPath, JSON.stringify(processedResults))
 
+  const programName = program.program.replace('_', ' ')
+  const airMoment = moment(program.airtime)
+
   let finalString = ''
   finalString += '======================'
-  finalString += `\n<https://archive.org/details/${program.id}|${program.network},${program.program},${program.airtime}>`
+  finalString += `\n<https://archive.org/details/${program.id}|${program.network}, ${programName}, ${airMoment.utcOffset(-8).format('YYYY-MM-DD hh:mm A')} PST>`
 
-  const processedLabels = Object.keys(processedResults)
-  for (let i = 0; i < processedLabels.length; i += 1) {
-    const label = processedLabels[i]
-    const results = processedResults[label]
-    if (results.length === 0) {
-      finalString += `\n:no_entry_sign: \`${label}\` Not Found`
-    } else {
-      finalString += `\n:white_check_mark: \`${label}\` Detected`
+  // This should become something more pluggable, but for now
+  // this will determine the order and rendering name for each
+  // face we track
+  const displayTable = [
+    {
+      label: 'mcconnell',
+      display: 'Mitch McConnell',
+    },
+    {
+      label: 'pelosi',
+      display: 'Nancy Pelosi',
+    },
+    {
+      label: 'ryan',
+      display: 'Paul Ryan',
+    },
+    {
+      label: 'schumer',
+      display: 'Chuck Schumer',
+    },
+    {
+      label: 'trump',
+      display: 'Donald Trump',
+    },
+    {
+      label: 'mccain',
+      display: 'Guest Face: John McCain',
+    },
+  ]
 
-      let start = -1
-      let end = -1
+  for (let i = 0; i < displayTable.length; i += 1) {
+    const label = displayTable[i].label
+    const display = displayTable[i].display
+    if (label in processedResults) {
+      const results = processedResults[label]
+      if (results.length === 0) {
+        finalString += `\n:no_entry_sign: \`${display}\` Not Found`
+      } else {
+        finalString += `\n:white_check_mark: \`${display}\` Detected`
 
-      const seconds = Object.keys(results)
-      for (let j = 0; j < seconds.length; j += 1) {
-        const second = seconds[j]
-        if (start === -1) {
-          start = second
-          end = second
+        let start = -1
+        let end = -1
+
+        const seconds = Object.keys(results)
+        for (let j = 0; j < seconds.length; j += 1) {
+          const second = seconds[j]
+          if (start === -1) {
+            start = second
+            end = second
+          }
+
+          // Allow gaps of up to 3 seconds
+          if (second - end <= 3) {
+            end = second
+          } else {
+            finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
+            start = second
+            end = second
+          }
         }
-
-        // Allow gaps of up to 3 seconds
-        if (second - end <= 3) {
-          end = second
-        } else {
+        if (start !== -1) {
           finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
-          start = second
-          end = second
         }
-      }
-      if (start !== -1) {
-        finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
       }
     }
   }
