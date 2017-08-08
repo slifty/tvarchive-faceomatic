@@ -68,5 +68,7 @@ programs/*.json
 videos/*.mp4
 videos/*.out
 results/*.json
+csvs/*.csv
+csvs/*.tsv
 webhooks.txt
 payloads.txt
