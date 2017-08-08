@@ -10,7 +10,7 @@ import schedule from 'node-schedule'
 import moment from 'moment'
 import { execSync } from 'child_process'
 import csv from 'csv'
-
+import { leftPad } from 'left-pad'
 import { Server } from 'http'
 
 import { WEB_PORT, STATIC_PATH } from '../shared/config'
@@ -296,8 +296,8 @@ function storeResults(fullResults, program) {
 }
 
 function secondsToTime(seconds) {
-  const s = seconds % 60
-  const m = Math.floor((seconds % 3600) / 60)
+  const s = leftPad(seconds % 60, 2, 0)
+  const m = leftPad(Math.floor((seconds % 3600) / 60), 2, 0)
   const h = Math.floor((seconds % 86400) / 3600)
   return `${h}:${m}:${s}`
 }
