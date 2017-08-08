@@ -571,6 +571,13 @@ function generateClip(label, programId, start, end) {
   const airMoment = moment(program.airtime)
   const displayValues = getDisplayValues(label)
   airMoment.add(start, 'seconds')
+
+  // Clips should be at least 1 second long
+  if (start === end) {
+    // eslint-disable-next-line no-param-reassign
+    end = start + 1
+  }
+
   const clip = {
     label,
     displayValues,
@@ -734,12 +741,12 @@ schedule.scheduleJob('* * * * *', () => {
 })
 
 // Set up scheduled generation of the csv
-schedule.scheduleJob('0 0 * * *', () => {
+schedule.scheduleJob('0 * * * *', () => {
   console.log('Generating latest results files...')
   const csvName = `results_${Date.now()}`
   generateResultsCSV(csvName)
-  console.log(`Generated: csvs/${generateResultsCSV}.csv`)
-  console.log(`Generated: csvs/${generateResultsCSV}.tsv`)
+  console.log(`Generated: csvs/${csvName}.csv`)
+  console.log(`Generated: csvs/${csvName}.tsv`)
 })
 
 http.listen(WEB_PORT, () => {
