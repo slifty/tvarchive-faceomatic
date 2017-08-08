@@ -9,8 +9,8 @@ import dotenv from 'dotenv'
 import schedule from 'node-schedule'
 import moment from 'moment'
 import { execSync } from 'child_process'
+import csv from 'csv'
 import { leftPad } from 'left-pad'
-
 import { Server } from 'http'
 
 import { WEB_PORT, STATIC_PATH } from '../shared/config'
@@ -515,6 +515,200 @@ function getUnprocessedProgramIds() {
   return unprocessedPrograms
 }
 
+function getProcessedResultFiles() {
+  const files = fs.readdirSync(path.join(__dirname, '../../results/'))
+  const processedResultFiles = []
+  for (let i = 0; i < files.length; i += 1) {
+    const file = files[i]
+    if (file.slice(-15) === '_processed.json') {
+      processedResultFiles.push(file)
+    }
+  }
+  return processedResultFiles
+}
+
+function getDisplayValues(label) {
+  const displayTable = [
+    {
+      label: 'mcconnell',
+      display: 'Mitch McConnell',
+    },
+    {
+      label: 'pelosi',
+      display: 'Nancy Pelosi',
+    },
+    {
+      label: 'ryan',
+      display: 'Paul Ryan',
+    },
+    {
+      label: 'schumer',
+      display: 'Chuck Schumer',
+    },
+    {
+      label: 'trump',
+      display: 'Donald Trump',
+    },
+    {
+      label: 'mccain',
+      display: 'John McCain',
+    },
+  ]
+
+  if (label in displayTable) {
+    return displayTable[label]
+  }
+
+  return {
+    label,
+    display: label,
+  }
+}
+
+function generateClip(label, programId, start, end) {
+  const program = parseProgramId(programId)
+  const programName = program.program.replace('_', ' ')
+  const airMoment = moment(program.airtime)
+  const displayValues = getDisplayValues(label)
+  airMoment.add(start, 'seconds')
+  const clip = {
+    label,
+    displayValues,
+    network: program.network,
+    program: programName,
+    date: `${airMoment.utcOffset(-8).format('YYYY-MM-DD')}`,
+    time: `${airMoment.utcOffset(-8).format('hh:mm:ss A')} PST`,
+    duration: end - start,
+    programId: program.id,
+    link: `https://archive.org/details/${program.id}#start/${start}/end/${end}`,
+  }
+  return clip
+}
+
+function generateResultsCSV(filestem) {
+  // Load up all results
+  const processedResultFiles = getProcessedResultFiles()
+
+  // Create an output Files
+  const csvPath = path.join(__dirname, `../../csvs/${filestem}.csv`)
+  const csvFile = fs.createWriteStream(csvPath)
+  const tsvPath = path.join(__dirname, `../../csvs/${filestem}.tsv`)
+  const tsvFile = fs.createWriteStream(tsvPath)
+  const columns = [
+    'Label',
+    'Name',
+    'Network',
+    'Program',
+    'Air Date',
+    'Air Time',
+    'Duration',
+    'Archive ID',
+    'URL',
+  ]
+
+  // Set up the CSV Pipeline
+  const csvStringifier = csv.stringify({
+    header: true,
+    columns,
+  })
+  csvStringifier.on('readable', () => {
+    let data = null
+    // eslint-disable-next-line no-cond-assign
+    while (data = csvStringifier.read()) {
+      csvFile.write(data)
+    }
+  })
+
+  // Set up the TSV Pipeline
+  const tsvStringifier = csv.stringify({
+    header: true,
+    columns,
+    delimiter: '\t',
+  })
+  tsvStringifier.on('readable', () => {
+    let data = null
+    // eslint-disable-next-line no-cond-assign
+    while (data = tsvStringifier.read()) {
+      tsvFile.write(data)
+    }
+  })
+
+  // Go through each item and append the results
+  for (let i = 0; i < processedResultFiles.length; i += 1) {
+    const processedResultFile = path.join(__dirname, `../../results/${processedResultFiles[i]}`)
+    const programId = processedResultFiles[i].slice(0, -15)
+    fs.readFile(processedResultFile, 'utf8', (err, data) => {
+      const processedResults = JSON.parse(data)
+      const outputLabels = [
+        'mcconnell',
+        'pelosi',
+        'ryan',
+        'schumer',
+        'trump',
+        'mccain',
+      ]
+
+      for (let j = 0; j < outputLabels.length; j += 1) {
+        const label = outputLabels[j]
+        if (label in processedResults) {
+          const results = processedResults[label]
+          let start = -1
+          let end = -1
+          const seconds = Object.keys(results)
+          for (let k = 0; k < seconds.length; k += 1) {
+            const second = seconds[k]
+            if (results[second] !== null) {
+              if (start === -1) {
+                start = second
+                end = second + 1
+              }
+
+              // Allow gaps of up to 3 seconds
+              if (second - end <= 3) {
+                end = second
+              } else {
+                const clip = generateClip(label, programId, start, end)
+                const row = [
+                  clip.label,
+                  clip.displayValues.display,
+                  clip.network,
+                  clip.program,
+                  clip.date,
+                  clip.time,
+                  clip.duration,
+                  clip.programId,
+                  clip.link,
+                ]
+                csvStringifier.write(row)
+                tsvStringifier.write(row)
+                start = -1
+                end = -1
+              }
+            }
+          }
+          if (start !== -1) {
+            // TODO: DRY
+            const clip = generateClip(label, programId, start, end)
+            const row = [
+              clip.label,
+              clip.displayValues.display,
+              clip.network,
+              clip.program,
+              clip.date,
+              clip.time,
+              clip.duration,
+              clip.programId,
+              clip.link,
+            ]
+            csvStringifier.write(row)
+            tsvStringifier.write(row)
+          }
+        }
+      }
+    })
+  }
+}
+
 // Set up scheduled download of program IDs
 schedule.scheduleJob('* * * * *', () => {
   console.log('Checking for unprocessed programs...')
@@ -537,6 +731,15 @@ schedule.scheduleJob('* * * * *', () => {
       processProgram(program)
     })
   }
+})
+
+// Set up scheduled generation of the csv
+schedule.scheduleJob('0 0 * * *', () => {
+  console.log('Generating latest results files...')
+  const csvName = `results_${Date.now()}`
+  generateResultsCSV(csvName)
+  console.log(`Generated: csvs/${generateResultsCSV}.csv`)
+  console.log(`Generated: csvs/${generateResultsCSV}.tsv`)
 })
 
 http.listen(WEB_PORT, () => {
