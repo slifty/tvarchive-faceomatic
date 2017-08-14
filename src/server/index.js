@@ -660,9 +660,8 @@ function generateResultsCSV(filestem) {
           const results = processedResults[label]
           let start = -1
           let end = -1
-          const seconds = Object.keys(results)
-          for (let k = 0; k < seconds.length; k += 1) {
-            const second = seconds[k]
+          for (let k = 0; k < results.length; k += 1) {
+            const second = parseInt(k, 10)
             if (results[second] !== null) {
               if (start === -1) {
                 start = second
