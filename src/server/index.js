@@ -430,7 +430,7 @@ function announceResults(fullResults, program) {
           const second = seconds[j]
           if (start === -1) {
             start = second
-            end = second
+            end = second + 1
           }
 
           // Allow gaps of up to 3 seconds
@@ -659,7 +659,6 @@ function generateResultsCSV(filestem) {
         'ryan',
         'schumer',
         'trump',
-        'mccain',
       ]
 
       for (let j = 0; j < outputLabels.length; j += 1) {
