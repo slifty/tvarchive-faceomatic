@@ -211,12 +211,16 @@ function getAccessToken(callback) {
   }
 
   request(options, (error, response, body) => {
-    const JSONresponse = JSON.parse(body)
-    if (JSONresponse.access_token) {
-      // eslint-disable-next-line no-console
-      accessToken = JSONresponse.access_token
-      accessTokenExpiration = Date() + (JSONresponse.expires_in - 1000)
-      callback(accessToken)
+    try {
+      const JSONresponse = JSON.parse(body)
+      if (JSONresponse.access_token) {
+        // eslint-disable-next-line no-console
+        accessToken = JSONresponse.access_token
+        accessTokenExpiration = Date() + (JSONresponse.expires_in - 1000)
+        callback(accessToken)
+      }
+    } catch (err) {
+      console.log(`    ACCESS TOKEN ERROR: ${body}`)
     }
   })
 }
@@ -234,9 +238,13 @@ function startMatroidProcessing(videoPath, callback) {
       },
     }
     request(options, (error, response, body) => {
-      const JSONresponse = JSON.parse(body)
-      if (JSONresponse.video_id) {
-        callback(JSONresponse.video_id)
+      try {
+        const JSONresponse = JSON.parse(body)
+        if (JSONresponse.video_id) {
+          callback(JSONresponse.video_id)
+        }
+      } catch (err) {
+        console.log(`    PROCESSING ERROR: ${videoPath} :: ${body}`)
       }
     })
   })
