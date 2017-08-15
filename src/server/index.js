@@ -171,26 +171,36 @@ function downloadProgram(program, callback) {
 function splitProgram(program) {
   const paths = getPaths(program.id)
   const cmd = `${process.env.FFMPEG_PATH} -i "${paths.videoPath}" -acodec copy -f segment -segment_time 1200 -vcodec copy -reset_timestamps 1 -map 0 -segment_list ${paths.ffmpegOutputPath} ${paths.videoPath}_OUTPUT%d.mp4`
-  execSync(cmd, {
-    stdio: 'ignore',
-  })
-  const output = fs.readFileSync(paths.ffmpegOutputPath, 'utf8')
-  const pieces = output.split('\n')
+
   const files = []
-  for (let i = 0; i < pieces.length; i += 1) {
-    const piece = pieces[i]
-    if (piece.trim() !== '') {
-      files.push(path.join(__dirname, `../../videos/${piece}`))
+  try {
+    execSync(cmd, {
+      stdio: 'ignore',
+    })
+    const output = fs.readFileSync(paths.ffmpegOutputPath, 'utf8')
+    const pieces = output.split('\n')
+    for (let i = 0; i < pieces.length; i += 1) {
+      const piece = pieces[i]
+      if (piece.trim() !== '') {
+        files.push(path.join(__dirname, `../../videos/${piece}`))
+      }
     }
+  } catch (err) {
+    console.log(`  ERROR: Couldn't split program :: ${program.id}`)
   }
   return files
 }
 
 function getDuration(videoPath) {
   const cmd = `${process.env.FFPROBE_PATH} -i "${videoPath}" -show_entries format=duration -v quiet -of csv="p=0"`
-  const output = execSync(cmd, {
-    encoding: 'utf8',
-  })
+  let output = 0
+  try {
+    output = execSync(cmd, {
+      encoding: 'utf8',
+    })
+  } catch (err) {
+    console.log(`  ERROR: Couldn't get duration :: ${videoPath}`)
+  }
   return parseInt(output.trim(), 10)
 }
 
