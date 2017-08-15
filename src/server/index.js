@@ -227,6 +227,7 @@ function getAccessToken(callback) {
 
 function startMatroidProcessing(videoPath, callback) {
   getAccessToken((token) => {
+    console.log(`    DETECTION SUBMITTED: ${videoPath}`)
     const options = {
       uri: `https://www.matroid.com/api/0.1/detectors/${process.env.MATROID_DETECTOR_ID}/classify_video`,
       method: 'POST',
@@ -241,10 +242,13 @@ function startMatroidProcessing(videoPath, callback) {
       try {
         const JSONresponse = JSON.parse(body)
         if (JSONresponse.video_id) {
+          console.log(`    DETECTION PROCESSED: ${videoPath} :: ${JSONresponse.video_id}`)
           callback(JSONresponse.video_id)
+        } else {
+          console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
         }
       } catch (err) {
-        console.log(`    PROCESSING ERROR: ${videoPath} :: ${body}`)
+        console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
       }
     })
   })
@@ -267,7 +271,7 @@ function getMatroidResults(matroidVideoId, callback) {
       }
 
       if (JSONresponse.classification_progress !== 100) {
-        console.log(`    PROCESSING: ${JSONresponse.classification_progress} :: ${matroidVideoId}`)
+        console.log(`    PROCESSING RESULTS: ${JSONresponse.classification_progress} :: ${matroidVideoId}`)
 
         setTimeout(() => {
           getMatroidResults(matroidVideoId, callback)
