@@ -185,6 +185,7 @@ function splitProgram(program) {
         files.push(path.join(__dirname, `../../videos/${piece}`))
       }
     }
+    fs.unlinkSync(paths.ffmpegOutputPath)
   } catch (err) {
     console.log(`  ERROR: Couldn't split program :: ${program.id}`)
   }
@@ -285,7 +286,7 @@ function getMatroidResults(matroidVideoId, callback) {
 
         setTimeout(() => {
           getMatroidResults(matroidVideoId, callback)
-        }, 10000)
+        }, 15000 + (Math.random() * 10000))
       } else {
         callback(JSONresponse)
       }
