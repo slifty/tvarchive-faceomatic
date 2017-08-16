@@ -232,6 +232,7 @@ function getAccessToken(callback) {
       }
     } catch (err) {
       console.log(`    ACCESS TOKEN ERROR: ${body}`)
+      callback(accessToken)
     }
   })
 }
@@ -256,9 +257,15 @@ function startMatroidProcessing(videoPath, callback) {
           console.log(`    DETECTION PROCESSED: ${videoPath} :: ${JSONresponse.video_id}`)
           callback(JSONresponse.video_id)
         } else {
+          setTimeout(() => {
+            startMatroidProcessing(videoPath, callback)
+          }, 60000 + (Math.random() * 10000))
           console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
         }
       } catch (err) {
+        setTimeout(() => {
+          startMatroidProcessing(videoPath, callback)
+        }, 60000 + (Math.random() * 10000))
         console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
       }
     })
@@ -276,19 +283,25 @@ function getMatroidResults(matroidVideoId, callback) {
     }
 
     request(options, (error, response, body) => {
-      const JSONresponse = JSON.parse(body)
-      if (JSONresponse.classification_progress === undefined) {
-        return
-      }
+      try {
+        const JSONresponse = JSON.parse(body)
+        if (JSONresponse.classification_progress === undefined) {
+          return
+        }
 
-      if (JSONresponse.classification_progress !== 100) {
-        console.log(`    PROCESSING RESULTS: ${JSONresponse.classification_progress} :: ${matroidVideoId}`)
+        if (JSONresponse.classification_progress !== 100) {
+          console.log(`    PROCESSING RESULTS: ${JSONresponse.classification_progress} :: ${matroidVideoId}`)
 
+          setTimeout(() => {
+            getMatroidResults(matroidVideoId, callback)
+          }, 15000 + (Math.random() * 10000))
+        } else {
+          callback(JSONresponse)
+        }
+      } catch (err) {
         setTimeout(() => {
           getMatroidResults(matroidVideoId, callback)
-        }, 15000 + (Math.random() * 10000))
-      } else {
-        callback(JSONresponse)
+        }, 60000 + (Math.random() * 60000))
       }
     })
   })
