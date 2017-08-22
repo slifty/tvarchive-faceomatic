@@ -564,28 +564,22 @@ function getProcessedResultFiles() {
 
 function getDisplayValues(label) {
   const displayTable = [
-    {
-      label: 'mcconnell',
+    'trump': {
       display: 'Mitch McConnell',
     },
-    {
-      label: 'pelosi',
+    'pelosi': {
       display: 'Nancy Pelosi',
     },
-    {
-      label: 'ryan',
+    'ryan': {
       display: 'Paul Ryan',
     },
-    {
-      label: 'schumer',
+    'schumer': {
       display: 'Chuck Schumer',
     },
-    {
-      label: 'trump',
+    'trump': {
       display: 'Donald Trump',
     },
-    {
-      label: 'mccain',
+    'mccain': {
       display: 'John McCain',
     },
   ]
@@ -595,14 +589,13 @@ function getDisplayValues(label) {
   }
 
   return {
-    label,
     display: label,
   }
 }
 
 function generateClip(label, programId, start, end) {
   const program = parseProgramId(programId)
-  const programName = program.program.replace('_', ' ')
+  const programName = program.program.split('_').join(' ')
   const airMoment = moment(program.airtime)
   const displayValues = getDisplayValues(label)
   airMoment.add(start, 'seconds')
@@ -622,7 +615,7 @@ function generateClip(label, programId, start, end) {
     time: `${airMoment.utcOffset(-8).format('hh:mm:ss A')} PST`,
     duration: end - start,
     programId: program.id,
-    link: `https://archive.org/details/${program.id}#start/${start}/end/${end}`,
+    link: `https://archive.org/details/${program.id}/start/${start}/end/${end}`,
   }
   return clip
 }
