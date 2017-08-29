@@ -63,8 +63,12 @@ function getPrograms(callback) {
   }
 
   request(options, (error, response, body) => {
-    const JSONresponse = JSON.parse(body)
-    callback(JSONresponse)
+    try {
+      const JSONresponse = JSON.parse(body)
+      callback(JSONresponse)
+    } catch (err) {
+      console.log('ERR: Getting program IDs from the archive.')
+    }
   })
 }
 
@@ -611,6 +615,7 @@ function generateClip(label, programId, start, end) {
     displayValues,
     network: program.network,
     program: programName,
+    airTime: airMoment,
     date: `${airMoment.utcOffset(-8).format('YYYY-MM-DD')}`,
     time: `${airMoment.utcOffset(-8).format('hh:mm:ss A')} PST`,
     duration: end - start,
@@ -618,6 +623,45 @@ function generateClip(label, programId, start, end) {
     link: `https://archive.org/details/${program.id}/start/${start}/end/${end}`,
   }
   return clip
+}
+
+/* This utility function will determine if a given airing is  part of
+   the program it was captured in, or if it is actually part of the one
+   minute overlap that we sometimes add to the end of programs.
+
+   This is determined by looking at the next program aired on the
+   channel and seeing if the airtime overlaps.  If so, it is considered
+   to be part of the next program.
+
+   NOTE: sortedProgramIdList is expected to be sorted by program Id
+   */
+function isPartOfNextProgram(airTime, currentProgramId, sortedProgramIdList) {
+  // Find the next program
+  const currentProgramIndex = sortedProgramIdList.indexOf(currentProgramId)
+  const nextProgramIndex = currentProgramIndex + 1
+
+  // If there is no next program, then we know the answer
+  if (nextProgramIndex >= sortedProgramIdList.length) {
+    return false
+  }
+
+  const nextProgramId = sortedProgramIdList[nextProgramIndex]
+
+  console.log(`${currentProgramId} => ${nextProgramId}`)
+
+  // Is this program the most recent one on the current network?
+  const currentProgram = parseProgramId(currentProgramId)
+  const nextProgram = parseProgramId(nextProgramId)
+  if (currentProgram.network !== nextProgram.network) {
+    return false
+  }
+
+  // Did this air after the beginning of the start of the next program
+  if (airTime >= nextProgram.airTime) {
+    return true
+  }
+
+  return false
 }
 
 function generateResultsCSV(filestem) {
@@ -668,6 +712,10 @@ function generateResultsCSV(filestem) {
     }
   })
 
+  // Generate a sorted list of all processed program IDs
+  const programIdList = processedResultFiles.map(fileName => fileName.slice(0, -15))
+  const sortedProgramIdList = programIdList.sort()
+
   // Go through each item and append the results
   for (let i = 0; i < processedResultFiles.length; i += 1) {
     const processedResultFile = path.join(__dirname, `../../results/${processedResultFiles[i]}`)
@@ -712,8 +760,12 @@ function generateResultsCSV(filestem) {
                   clip.programId,
                   clip.link,
                 ]
-                csvStringifier.write(row)
-                tsvStringifier.write(row)
+
+                if (!isPartOfNextProgram(clip.airTime, clip.programId, sortedProgramIdList)) {
+                  csvStringifier.write(row)
+                  tsvStringifier.write(row)
+                }
+
                 start = -1
                 end = -1
               }
@@ -733,8 +785,10 @@ function generateResultsCSV(filestem) {
               clip.programId,
               clip.link,
             ]
-            csvStringifier.write(row)
-            tsvStringifier.write(row)
+            if (!isPartOfNextProgram(clip.airTime, clip.programId, sortedProgramIdList)) {
+              csvStringifier.write(row)
+              tsvStringifier.write(row)
+            }
           }
         }
       }
