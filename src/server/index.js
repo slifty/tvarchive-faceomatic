@@ -615,7 +615,7 @@ function generateClip(label, programId, start, end) {
     displayValues,
     network: program.network,
     program: programName,
-    airTime: airMoment,
+    airtime: airMoment,
     date: `${airMoment.utcOffset(-8).format('YYYY-MM-DD')}`,
     time: `${airMoment.utcOffset(-8).format('hh:mm:ss A')} PST`,
     duration: end - start,
@@ -635,7 +635,7 @@ function generateClip(label, programId, start, end) {
 
    NOTE: sortedProgramIdList is expected to be sorted by program Id
    */
-function isPartOfNextProgram(airTime, currentProgramId, sortedProgramIdList) {
+function isPartOfNextProgram(airtime, currentProgramId, sortedProgramIdList) {
   // Find the next program
   const currentProgramIndex = sortedProgramIdList.indexOf(currentProgramId)
   const nextProgramIndex = currentProgramIndex + 1
@@ -647,8 +647,6 @@ function isPartOfNextProgram(airTime, currentProgramId, sortedProgramIdList) {
 
   const nextProgramId = sortedProgramIdList[nextProgramIndex]
 
-  console.log(`${currentProgramId} => ${nextProgramId}`)
-
   // Is this program the most recent one on the current network?
   const currentProgram = parseProgramId(currentProgramId)
   const nextProgram = parseProgramId(nextProgramId)
@@ -657,7 +655,7 @@ function isPartOfNextProgram(airTime, currentProgramId, sortedProgramIdList) {
   }
 
   // Did this air after the beginning of the start of the next program
-  if (airTime >= nextProgram.airTime) {
+  if (moment(airtime) >= moment(nextProgram.airtime)) {
     return true
   }
 
@@ -761,7 +759,7 @@ function generateResultsCSV(filestem) {
                   clip.link,
                 ]
 
-                if (!isPartOfNextProgram(clip.airTime, clip.programId, sortedProgramIdList)) {
+                if (!isPartOfNextProgram(clip.airtime, clip.programId, sortedProgramIdList)) {
                   csvStringifier.write(row)
                   tsvStringifier.write(row)
                 }
@@ -785,7 +783,7 @@ function generateResultsCSV(filestem) {
               clip.programId,
               clip.link,
             ]
-            if (!isPartOfNextProgram(clip.airTime, clip.programId, sortedProgramIdList)) {
+            if (!isPartOfNextProgram(clip.airtime, clip.programId, sortedProgramIdList)) {
               csvStringifier.write(row)
               tsvStringifier.write(row)
             }
