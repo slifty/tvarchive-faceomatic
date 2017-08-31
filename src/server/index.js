@@ -870,7 +870,7 @@ function generateProgramCSV(filestem) {
   })
 
   const logProgram = (programId) => {
-    const programFile = path.join(__dirname, `../../results/${programId}.json`)
+    const programFile = path.join(__dirname, `../../programs/${programId}.json`)
     fs.readFile(programFile, 'utf8', (err, data) => {
       const programData = JSON.parse(data)
       if ('imageCount' in programData) {
