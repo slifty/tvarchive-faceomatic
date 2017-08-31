@@ -554,6 +554,19 @@ function getUnprocessedProgramIds() {
   return unprocessedPrograms
 }
 
+function getProcessedProgramIds() {
+  const files = fs.readdirSync(path.join(__dirname, '../../programs/'))
+  const processedPrograms = []
+  for (let i = 0; i < files.length; i += 1) {
+    const file = files[i]
+    if (file.slice(0, 1) !== '_'
+     && file.slice(0, 1) !== '~') {
+      processedPrograms.push(file.slice(1, -5))
+    }
+  }
+  return processedPrograms
+}
+
 function getProcessedResultFiles() {
   const files = fs.readdirSync(path.join(__dirname, '../../results/'))
   const processedResultFiles = []
@@ -794,6 +807,107 @@ function generateResultsCSV(filestem) {
   }
 }
 
+
+function lookupProgramDuration(archiveId, callback) {
+  const options = {
+    uri: `https://archive.org/metadata/${archiveId}`,
+    method: 'GET',
+  }
+
+  request(options, (error, response, body) => {
+    try {
+      const JSONresponse = JSON.parse(body)
+      callback(JSONresponse.metadata.imagecount)
+    } catch (err) {
+      callback('')
+    }
+  })
+}
+
+function generateProgramCSV(filestem) {
+  // Load up all results
+  const processedProgramIds = getProcessedProgramIds()
+
+  // Create an output Files
+  const csvPath = path.join(__dirname, `../../csvs/${filestem}.csv`)
+  const csvFile = fs.createWriteStream(csvPath)
+  const tsvPath = path.join(__dirname, `../../csvs/${filestem}.tsv`)
+  const tsvFile = fs.createWriteStream(tsvPath)
+
+  const columns = [
+    'Program ID',
+    'Network',
+    'Air Time',
+    'Program',
+    'Duration',
+  ]
+
+  // Set up the CSV Pipeline
+  const csvStringifier = csv.stringify({
+    header: true,
+    columns,
+  })
+  csvStringifier.on('readable', () => {
+    let data = null
+    // eslint-disable-next-line no-cond-assign
+    while (data = csvStringifier.read()) {
+      csvFile.write(data)
+    }
+  })
+
+  // Set up the TSV Pipeline
+  const tsvStringifier = csv.stringify({
+    header: true,
+    columns,
+    delimiter: '\t',
+  })
+  tsvStringifier.on('readable', () => {
+    let data = null
+    // eslint-disable-next-line no-cond-assign
+    while (data = tsvStringifier.read()) {
+      tsvFile.write(data)
+    }
+  })
+
+  const logProgram = (programId) => {
+    const programFile = path.join(__dirname, `../../results/${programId}.json`)
+    fs.readFile(programFile, 'utf8', (err, data) => {
+      const programData = JSON.parse(data)
+      if ('imageCount' in programData) {
+        const row = [
+          programData.id,
+          programData.network,
+          programData.airtime,
+          programData.program,
+          programData.imageCount,
+        ]
+        csvStringifier.write(row)
+        tsvStringifier.write(row)
+      } else {
+        lookupProgramDuration(programId, (duration) => {
+          programData.imageCount = duration
+
+          // Write the row
+          const row = [
+            programData.id,
+            programData.network,
+            programData.airtime,
+            programData.program,
+            programData.imageCount,
+          ]
+          csvStringifier.write(row)
+          tsvStringifier.write(row)
+        })
+      }
+    })
+  }
+
+  for (let i = 0; i < processedProgramIds.length; i += 1) {
+    const programId = processedProgramIds[i]
+    logProgram(programId)
+  }
+}
+
 // Set up scheduled download of program IDs
 schedule.scheduleJob('* * * * *', () => {
   console.log('Checking for unprocessed programs...')
@@ -821,11 +935,23 @@ schedule.scheduleJob('* * * * *', () => {
 // Set up scheduled generation of the csv
 schedule.scheduleJob('0 * * * *', () => {
   console.log('Generating latest results files...')
-  const csvName = `results_${Date.now()}`
-  generateResultsCSV(csvName)
-  console.log(`Generated: csvs/${csvName}.csv`)
-  console.log(`Generated: csvs/${csvName}.tsv`)
+  const csvTime = Date.now()
+  // Result CSVs
+  const resultCsvName = `results_${csvTime}`
+  generateResultsCSV(resultCsvName)
+  console.log(`Generated: csvs/${resultCsvName}.csv`)
+  console.log(`Generated: csvs/${resultCsvName}.tsv`)
+
+  // Program CSVs
+  const programCsvName = `results_${csvTime}`
+  generateProgramCSV(programCsvName)
+  console.log(`Generated: csvs/${programCsvName}.csv`)
+  console.log(`Generated: csvs/${programCsvName}.tsv`)
 })
+
+generateResultsCSV('resultsTest')
+generateProgramCSV('programsTest')
+
 
 http.listen(WEB_PORT, () => {
   // eslint-disable-next-line no-console
