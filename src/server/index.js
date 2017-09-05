@@ -820,7 +820,7 @@ function lookupProgramDuration(archiveId, callback) {
       callback(JSONresponse.metadata.imagecount)
     } catch (err) {
       callback(-1)
-      console.log(`ERROR GETTING DURATION: ${archiveId}`)
+      console.log(`ERROR GETTING DURATION: ${archiveId} || ${body}`)
     }
   })
 }
@@ -872,8 +872,7 @@ function generateProgramCSV(filestem) {
 
   const logProgram = (programId) => {
     const paths = getPaths(programId)
-    const programFile = paths.processedPath
-    fs.readFile(programFile, 'utf8', (err, data) => {
+    fs.readFile(paths.processedPath, 'utf8', (err, data) => {
       let program = parseProgramId(programId)
       try {
         program = JSON.parse(data)
@@ -920,6 +919,32 @@ function generateProgramCSV(filestem) {
     logProgram(programId)
   }
 }
+
+function checkPrograms() {
+  return true
+}
+
+function checkData(resultsFile, programsFile) {
+  console.log(`${resultsFile} ${programsFile}`)
+  return true
+}
+
+function deployData(resultsFile, programsFile) {
+  console.log(`${resultsFile} ${programsFile}`)
+  return true
+}
+
+// Set up scheduled cleanup
+schedule.scheduleJob('0 0 * * *', () => {
+  console.log('Checking for missed programs...')
+  checkPrograms()
+
+  console.log('Checking the latest dataset...')
+  checkData('', '')
+
+  console.log('Deploying the latest dataset...')
+  deployData('', '')
+})
 
 // Set up scheduled download of program IDs
 schedule.scheduleJob('* * * * *', () => {
