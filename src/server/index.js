@@ -560,8 +560,9 @@ function getProcessedProgramIds() {
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i]
     if (file.slice(0, 1) !== '_'
-     && file.slice(0, 1) !== '~') {
-      processedPrograms.push(file.slice(1, -5))
+     && file.slice(0, 1) !== '~'
+     && file.slice(0, 1) !== '.') {
+      processedPrograms.push(file.slice(0, -5))
     }
   }
   return processedPrograms
@@ -807,7 +808,6 @@ function generateResultsCSV(filestem) {
   }
 }
 
-
 function lookupProgramDuration(archiveId, callback) {
   const options = {
     uri: `https://archive.org/metadata/${archiveId}`,
@@ -819,7 +819,8 @@ function lookupProgramDuration(archiveId, callback) {
       const JSONresponse = JSON.parse(body)
       callback(JSONresponse.metadata.imagecount)
     } catch (err) {
-      callback('')
+      callback(-1)
+      console.log(`ERROR GETTING DURATION: ${archiveId}`)
     }
   })
 }
@@ -870,33 +871,45 @@ function generateProgramCSV(filestem) {
   })
 
   const logProgram = (programId) => {
-    const programFile = path.join(__dirname, `../../programs/${programId}.json`)
+    const paths = getPaths(programId)
+    const programFile = paths.processedPath()
     fs.readFile(programFile, 'utf8', (err, data) => {
-      const programData = JSON.parse(data)
-      if ('imageCount' in programData) {
+      let program = parseProgramId(programId)
+      try {
+        program = JSON.parse(data)
+        fs.writeFileSync(paths.processedPath, JSON.stringify(program))
+      } catch (e) {
+        console.log(`Error loading ${programId} ${e})`)
+      }
+
+      if ('imageCount' in program
+      && program.imageCount > 0) {
         const row = [
-          programData.id,
-          programData.network,
-          programData.airtime,
-          programData.program,
-          programData.imageCount,
+          program.id,
+          program.network,
+          program.airtime,
+          program.program,
+          program.imageCount,
         ]
         csvStringifier.write(row)
         tsvStringifier.write(row)
       } else {
         lookupProgramDuration(programId, (duration) => {
-          programData.imageCount = duration
+          program.imageCount = duration
 
           // Write the row
           const row = [
-            programData.id,
-            programData.network,
-            programData.airtime,
-            programData.program,
-            programData.imageCount,
+            program.id,
+            program.network,
+            program.airtime,
+            program.program,
+            program.imageCount,
           ]
           csvStringifier.write(row)
           tsvStringifier.write(row)
+
+          // Update the program with the timestamp...
+          fs.writeFileSync(paths.processedPath, JSON.stringify(program))
         })
       }
     })
@@ -943,14 +956,14 @@ schedule.scheduleJob('0 * * * *', () => {
   console.log(`Generated: csvs/${resultCsvName}.tsv`)
 
   // Program CSVs
-  const programCsvName = `results_${csvTime}`
+  const programCsvName = `programs_${csvTime}`
   generateProgramCSV(programCsvName)
   console.log(`Generated: csvs/${programCsvName}.csv`)
   console.log(`Generated: csvs/${programCsvName}.tsv`)
 })
 
-generateResultsCSV('resultsTest')
-generateProgramCSV('programsTest')
+generateResultsCSV('results')
+generateProgramCSV('programs')
 
 
 http.listen(WEB_PORT, () => {
