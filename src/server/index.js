@@ -872,7 +872,7 @@ function generateProgramCSV(filestem) {
 
   const logProgram = (programId) => {
     const paths = getPaths(programId)
-    const programFile = paths.processedPath()
+    const programFile = paths.processedPath
     fs.readFile(programFile, 'utf8', (err, data) => {
       let program = parseProgramId(programId)
       try {
