@@ -684,6 +684,7 @@ function generateResultsCSV(filestem) {
   const csvPath = path.join(__dirname, `../../csvs/${filestem}.csv`)
   const csvFile = fs.createWriteStream(csvPath)
   const tsvPath = path.join(__dirname, `../../csvs/${filestem}.tsv`)
+  const resultsPaths = [csvPath, tsvPath]
   const tsvFile = fs.createWriteStream(tsvPath)
   const columns = [
     'Label',
@@ -806,6 +807,8 @@ function generateResultsCSV(filestem) {
       }
     })
   }
+
+  return resultsPaths
 }
 
 function lookupProgramDuration(archiveId, callback) {
@@ -834,6 +837,8 @@ function generateProgramCSV(filestem) {
   const csvFile = fs.createWriteStream(csvPath)
   const tsvPath = path.join(__dirname, `../../csvs/${filestem}.tsv`)
   const tsvFile = fs.createWriteStream(tsvPath)
+
+  const programsPaths = [csvPath, tsvPath]
 
   const columns = [
     'Program ID',
@@ -918,36 +923,32 @@ function generateProgramCSV(filestem) {
     const programId = processedProgramIds[i]
     logProgram(programId)
   }
+
+  return programsPaths
 }
 
-function checkPrograms() {
-  return true
+function deployData(deployFile, targetFile) {
+  // S3 documentation: https://github.com/vmbrasseur/IAS3API
+  const s3Url = `http://s3.us.archive.org/faceomatic/${targetFile}`
+  const options = {
+    method: 'put',
+    headers: {
+      authorization: `LOW ${process.env.ARCHIVE_S3_ACCESS}:${process.env.ARCHIVE_S3_SECRET}`,
+    },
+    body: fs.readFileSync(deployFile, 'utf8'),
+  }
+
+  request(s3Url, options, (err, httpResponse, body) => {
+    if (err) {
+      console.log('Upload Error: ', err, body)
+    } else {
+      console.log(`Uploaded ${deployFile}`, body)
+    }
+  })
 }
-
-function checkData(resultsFile, programsFile) {
-  console.log(`${resultsFile} ${programsFile}`)
-  return true
-}
-
-function deployData(resultsFile, programsFile) {
-  console.log(`${resultsFile} ${programsFile}`)
-  return true
-}
-
-// Set up scheduled cleanup
-schedule.scheduleJob('0 0 * * *', () => {
-  console.log('Checking for missed programs...')
-  checkPrograms()
-
-  console.log('Checking the latest dataset...')
-  checkData('', '')
-
-  console.log('Deploying the latest dataset...')
-  deployData('', '')
-})
 
 // Set up scheduled download of program IDs
-schedule.scheduleJob('* * * * *', () => {
+schedule.scheduleJob('30 * * * *', () => {
   console.log('Checking for unprocessed programs...')
   getPrograms((programIds) => {
     const programList = filterPrograms(programIds)
@@ -957,7 +958,7 @@ schedule.scheduleJob('* * * * *', () => {
 
 // Set up scheduled processing of programs
 schedule.scheduleJob('* * * * *', () => {
-  console.log('Checking for unprocessed programs...')
+  console.log('Processing new programs...')
   const programIds = getUnprocessedProgramIds()
   for (let i = 0; i < programIds.length; i += 1) {
     const programId = programIds[i]
@@ -976,20 +977,28 @@ schedule.scheduleJob('0 * * * *', () => {
   const csvTime = Date.now()
   // Result CSVs
   const resultCsvName = `results_${csvTime}`
-  generateResultsCSV(resultCsvName)
+  const results = generateResultsCSV(resultCsvName)
+  console.log('Deploying the latest dataset...')
   console.log(`Generated: csvs/${resultCsvName}.csv`)
   console.log(`Generated: csvs/${resultCsvName}.tsv`)
 
   // Program CSVs
   const programCsvName = `programs_${csvTime}`
-  generateProgramCSV(programCsvName)
+  const programs = generateProgramCSV(programCsvName)
   console.log(`Generated: csvs/${programCsvName}.csv`)
   console.log(`Generated: csvs/${programCsvName}.tsv`)
+
+  // TODO: make this less rigid
+  setTimeout(() => {
+    deployData(results[0], 'results.csv')
+    deployData(results[1], 'results.tsv')
+    deployData(programs[0], 'programs.csv')
+    deployData(programs[1], 'programs.tsv')
+  }, 600000)
 })
 
 generateResultsCSV('results')
 generateProgramCSV('programs')
-
 
 http.listen(WEB_PORT, () => {
   // eslint-disable-next-line no-console
