@@ -318,6 +318,7 @@ function runMatroid(videoPath, index, callback) {
       // Package the results
       const finalResults = {
         duration: getDuration(videoPath),
+        modelId: process.env.MATROID_DETECTOR_ID,
         results,
       }
 
@@ -441,6 +442,30 @@ function announceResults(fullResults, program) {
     {
       label: 'mccain',
       display: 'Guest Face: John McCain',
+    },
+    {
+      label: 'clinton_bill',
+      display: 'Test Face: Hillary Clinton',
+    },
+    {
+      label: 'clinton_hillary',
+      display: 'Test Face: Hillary Clinton',
+    },
+    {
+      label: 'carter',
+      display: 'Test Face: Jimmy Carter',
+    },
+    {
+      label: 'bush_w',
+      display: 'Test Face: George W Bush',
+    },
+    {
+      label: 'bush_hw',
+      display: 'Test Face: George HW Bush',
+    },
+    {
+      label: 'romney',
+      display: 'Test Face: Mitt Romney',
     },
   ]
 
@@ -600,6 +625,24 @@ function getDisplayValues(label) {
     'mccain': {
       display: 'John McCain',
     },
+    'clinton_bill': {
+      display: 'Test Face: Bill Clinton'
+    },
+    'clinton_hillary': {
+      display: 'Test Face: Hillary Clinton'
+    },
+    'carter': {
+      display: 'Test Face: Jimmy Carter'
+    },
+    'bush_w': {
+      display: 'Test Face: George W Bush'
+    },
+    'bush_hw': {
+      display: 'Test Face: George HW Bush'
+    },
+    'romney': {
+      display: 'Test Face: Mitt Romney'
+    },
   ]
 
   if (label in displayTable) {
@@ -696,6 +739,7 @@ function generateResultsCSV(filestem) {
     'Duration',
     'Archive ID',
     'URL',
+    'Model ID',
   ]
 
   // Set up the CSV Pipeline
@@ -731,9 +775,19 @@ function generateResultsCSV(filestem) {
 
   // Go through each item and append the results
   for (let i = 0; i < processedResultFiles.length; i += 1) {
-    const processedResultFile = path.join(__dirname, `../../results/${processedResultFiles[i]}`)
     const programId = processedResultFiles[i].slice(0, -15)
-    fs.readFile(processedResultFile, 'utf8', (err, data) => {
+    const paths = getPaths(programId)
+
+    // Load the Matroid model used
+    const rawData = fs.readFileSync(paths.matroidOutputPath, 'utf8')
+    const rawResults = JSON.parse(rawData)
+    let modelId = ''
+    if ('modelId' in rawResults) {
+      modelId = rawResults.modelId
+    }
+
+    // Load the results
+    fs.readFile(paths.processedOutputPath, 'utf8', (err, data) => {
       const processedResults = JSON.parse(data)
       const outputLabels = [
         'mcconnell',
@@ -741,6 +795,13 @@ function generateResultsCSV(filestem) {
         'ryan',
         'schumer',
         'trump',
+        'mccain',
+        'clinton_bill',
+        'clinton_hillary',
+        'bush_hw',
+        'bush_w',
+        'romney',
+        'carter',
       ]
 
       for (let j = 0; j < outputLabels.length; j += 1) {
@@ -772,6 +833,7 @@ function generateResultsCSV(filestem) {
                   clip.duration,
                   clip.programId,
                   clip.link,
+                  modelId,
                 ]
 
                 if (!isPartOfNextProgram(clip.airtime, clip.programId, sortedProgramIdList)) {
@@ -797,6 +859,7 @@ function generateResultsCSV(filestem) {
               clip.duration,
               clip.programId,
               clip.link,
+              modelId,
             ]
             if (!isPartOfNextProgram(clip.airtime, clip.programId, sortedProgramIdList)) {
               csvStringifier.write(row)
