@@ -626,22 +626,22 @@ function getDisplayValues(label) {
       display: 'John McCain',
     },
     'clinton_bill': {
-      display: 'Test Face: Bill Clinton'
+      display: 'Test Face: Bill Clinton',
     },
     'clinton_hillary': {
-      display: 'Test Face: Hillary Clinton'
+      display: 'Test Face: Hillary Clinton',
     },
     'carter': {
-      display: 'Test Face: Jimmy Carter'
+      display: 'Test Face: Jimmy Carter',
     },
     'bush_w': {
-      display: 'Test Face: George W Bush'
+      display: 'Test Face: George W Bush',
     },
     'bush_hw': {
-      display: 'Test Face: George HW Bush'
+      display: 'Test Face: George HW Bush',
     },
     'romney': {
-      display: 'Test Face: Mitt Romney'
+      display: 'Test Face: Mitt Romney',
     },
   ]
 
