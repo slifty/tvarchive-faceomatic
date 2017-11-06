@@ -445,7 +445,7 @@ function announceResults(fullResults, program) {
     },
     {
       label: 'clinton_bill',
-      display: 'Test Face: Hillary Clinton',
+      display: 'Test Face: Bill Clinton',
     },
     {
       label: 'clinton_hillary',
