@@ -529,7 +529,12 @@ function processProgram(program) {
   const paths = getPaths(program.id)
 
   // Mark the program as processing
-  fs.renameSync(paths.unprocessedPath, paths.processingPath)
+  try {
+    fs.renameSync(paths.unprocessedPath, paths.processingPath)
+  } catch (err) {
+    console.log(`ERROR starting to process ${program}: ${err}`)
+    return
+  }
 
   console.log(`  Downloading ${program.id}`)
   downloadProgram(program, (success) => {
