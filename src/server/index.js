@@ -264,13 +264,13 @@ function startMatroidProcessing(videoPath, callback) {
           setTimeout(() => {
             startMatroidProcessing(videoPath, callback)
           }, 60000 + (Math.random() * 10000))
-          console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
+          console.log(`    DETECTION ERROR: ${videoPath} :: Body: ${body} :: Error: ${error}`)
         }
       } catch (err) {
         setTimeout(() => {
           startMatroidProcessing(videoPath, callback)
         }, 60000 + (Math.random() * 10000))
-        console.log(`    DETECTION ERROR: ${videoPath} :: ${body}`)
+        console.log(`    DETECTION ERROR: ${videoPath} :: Body: ${body} :: Error: ${error}`)
       }
     })
   })
