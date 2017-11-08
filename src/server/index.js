@@ -467,6 +467,10 @@ function announceResults(fullResults, program) {
       label: 'romney',
       display: 'Test Face: Mitt Romney',
     },
+    {
+      label: 'obama',
+      display: 'Test Face: Barack Obama',
+    },
   ]
 
   for (let i = 0; i < displayTable.length; i += 1) {
@@ -611,44 +615,44 @@ function getProcessedResultFiles() {
 }
 
 function getDisplayValues(label) {
-  const displayTable = [
-    'trump': {
+  const displayTable = {
+    mcconnell: {
       display: 'Mitch McConnell',
     },
-    'pelosi': {
+    pelosi: {
       display: 'Nancy Pelosi',
     },
-    'ryan': {
+    ryan: {
       display: 'Paul Ryan',
     },
-    'schumer': {
+    schumer: {
       display: 'Chuck Schumer',
     },
-    'trump': {
+    trump: {
       display: 'Donald Trump',
     },
-    'mccain': {
+    mccain: {
       display: 'John McCain',
     },
-    'clinton_bill': {
+    clinton_bill: {
       display: 'Test Face: Bill Clinton',
     },
-    'clinton_hillary': {
+    clinton_hillary: {
       display: 'Test Face: Hillary Clinton',
     },
-    'carter': {
+    carter: {
       display: 'Test Face: Jimmy Carter',
     },
-    'bush_w': {
+    bush_w: {
       display: 'Test Face: George W Bush',
     },
-    'bush_hw': {
+    bush_hw: {
       display: 'Test Face: George HW Bush',
     },
-    'romney': {
+    romney: {
       display: 'Test Face: Mitt Romney',
     },
-  ]
+  }
 
   if (label in displayTable) {
     return displayTable[label]
@@ -800,13 +804,13 @@ function generateResultsCSV(filestem) {
         'ryan',
         'schumer',
         'trump',
-        'mccain',
-        'clinton_bill',
-        'clinton_hillary',
-        'bush_hw',
-        'bush_w',
-        'romney',
-        'carter',
+        // 'mccain',
+        // 'clinton_bill',
+        // 'clinton_hillary',
+        // 'bush_hw',
+        // 'bush_w',
+        // 'romney',
+        // 'carter',
       ]
 
       for (let j = 0; j < outputLabels.length; j += 1) {
