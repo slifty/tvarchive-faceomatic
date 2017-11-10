@@ -804,13 +804,14 @@ function generateResultsCSV(filestem) {
         'ryan',
         'schumer',
         'trump',
-        // 'mccain',
-        // 'clinton_bill',
-        // 'clinton_hillary',
-        // 'bush_hw',
-        // 'bush_w',
-        // 'romney',
-        // 'carter',
+        'mccain',
+        'obama',
+        'clinton_bill',
+        'clinton_hillary',
+        'bush_hw',
+        'bush_w',
+        'romney',
+        'carter',
       ]
 
       for (let j = 0; j < outputLabels.length; j += 1) {
