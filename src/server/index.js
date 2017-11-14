@@ -728,7 +728,7 @@ function isPartOfNextProgram(airtime, currentProgramId, sortedProgramIdList) {
   return false
 }
 
-function generateResultsCSV(filestem) {
+function generateResultsCSV(filestem, debug) {
   // Load up all results
   const processedResultFiles = getProcessedResultFiles()
 
@@ -804,15 +804,19 @@ function generateResultsCSV(filestem) {
         'ryan',
         'schumer',
         'trump',
-        // 'mccain',
-        // 'obama',
-        // 'clinton_bill',
-        // 'clinton_hillary',
-        // 'bush_hw',
-        // 'bush_w',
-        // 'romney',
-        // 'carter',
       ]
+      if (debug) {
+        outputLabels.push(
+          'mccain',
+          'obama',
+          'clinton_bill',
+          'clinton_hillary',
+          'bush_hw',
+          'bush_w',
+          'romney',
+          'carter',
+        )
+      }
 
       for (let j = 0; j < outputLabels.length; j += 1) {
         const label = outputLabels[j]
@@ -1054,6 +1058,9 @@ schedule.scheduleJob('0 * * * *', () => {
   console.log('Deploying the latest dataset...')
   console.log(`Generated: csvs/${resultCsvName}.csv`)
   console.log(`Generated: csvs/${resultCsvName}.tsv`)
+
+  // Debug results CSVs
+  generateResultsCSV('results', true)
 
   // Program CSVs
   const programCsvName = `programs_${csvTime}`
