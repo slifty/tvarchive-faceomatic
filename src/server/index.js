@@ -791,8 +791,9 @@ function generateResultsCSV(filestem, debug) {
     const rawData = fs.readFileSync(paths.matroidOutputPath, 'utf8')
     const rawResults = JSON.parse(rawData)
     let modelId = ''
-    if ('modelId' in rawResults) {
-      modelId = rawResults.modelId
+    if (rawResults.length > 0
+    && 'modelId' in rawResults[0]) {
+      modelId = rawResults[0].modelId
     }
 
     // Load the results
