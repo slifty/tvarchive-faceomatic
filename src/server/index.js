@@ -124,7 +124,7 @@ function isRegistered(programId) {
 
 function filterPrograms(programList) {
   // Cut out programs that:
-  // 1) didn't happen in the past 24h
+  // 1) didn't happen in the past two weeks
   // 2) Aren't on one of the channels we track
   // 3) have already been downloaded
 
@@ -134,7 +134,7 @@ function filterPrograms(programList) {
     const program = parseProgramId(programId)
     const now = new Date()
 
-    if ((Math.abs(now.getTime() - program.airtime.getTime()) <= 86400000)
+    if ((Math.abs(now.getTime() - program.airtime.getTime()) <= 86400000 * 14)
      && (program.network === 'CNNW'
       || program.network === 'FOXNEWSW'
       || program.network === 'MSNBCW'
