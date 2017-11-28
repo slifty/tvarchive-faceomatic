@@ -263,13 +263,13 @@ function startMatroidProcessing(videoPath, callback) {
         } else {
           setTimeout(() => {
             startMatroidProcessing(videoPath, callback)
-          }, 60000 + (Math.random() * 10000))
+          }, 60000 + (Math.random() * 100000))
           console.log(`    DETECTION ERROR: ${videoPath} :: Body: ${body} :: Error: ${error}`)
         }
       } catch (err) {
         setTimeout(() => {
           startMatroidProcessing(videoPath, callback)
-        }, 60000 + (Math.random() * 10000))
+        }, 60000 + (Math.random() * 100000))
         console.log(`    DETECTION ERROR: ${videoPath} :: Body: ${body} :: Error: ${error}`)
       }
     })
@@ -303,9 +303,10 @@ function getMatroidResults(matroidVideoId, callback) {
           callback(JSONresponse)
         }
       } catch (err) {
+        console.log(`    PROCESSING ERROR: ${matroidVideoId}::${err}`)
         setTimeout(() => {
           getMatroidResults(matroidVideoId, callback)
-        }, 60000 + (Math.random() * 60000))
+        }, 60000 + (Math.random() * 600000))
       }
     })
   })
