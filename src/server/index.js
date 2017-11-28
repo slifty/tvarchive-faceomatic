@@ -1044,8 +1044,12 @@ schedule.scheduleJob('* * * * *', () => {
     const paths = getPaths(programId)
     console.log(`Processing ${programId}`)
     fs.readFile(paths.unprocessedPath, (err, data) => {
-      const program = JSON.parse(data)
-      processProgram(program)
+      try {
+        const program = JSON.parse(data)
+        processProgram(program)
+      } catch (parseErr) {
+        console.log(`PROCESSING ERROR :: ${paths.unprocessedPath} :: ${data} :: ${parseErr}`)
+      }
     })
   }
 })
