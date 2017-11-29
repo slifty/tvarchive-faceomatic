@@ -1039,7 +1039,7 @@ schedule.scheduleJob('30 * * * *', () => {
 schedule.scheduleJob('* * * * *', () => {
   console.log('Processing new programs...')
   const programIds = getUnprocessedProgramIds()
-  for (let i = 0; i < programIds.length; i += 1) {
+  for (let i = 0; i < Math.min(5, programIds.length); i += 1) {
     const programId = programIds[i]
     const paths = getPaths(programId)
     console.log(`Processing ${programId}`)
