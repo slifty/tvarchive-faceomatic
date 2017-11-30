@@ -1039,7 +1039,10 @@ schedule.scheduleJob('30 * * * *', () => {
 schedule.scheduleJob('* * * * *', () => {
   console.log('Processing new programs...')
   const programIds = getUnprocessedProgramIds()
-  for (let i = 0; i < Math.min(5, programIds.length); i += 1) {
+
+  // We're only going to do one per minute for now, but this could
+  // change
+  for (let i = 0; i < Math.min(1, programIds.length); i += 1) {
     const programId = programIds[i]
     const paths = getPaths(programId)
     console.log(`Processing ${programId}`)
@@ -1083,7 +1086,7 @@ schedule.scheduleJob('0 * * * *', () => {
   }, 600000)
 })
 
-generateResultsCSV('results')
+generateResultsCSV('results', true)
 generateProgramCSV('programs')
 
 http.listen(WEB_PORT, () => {
