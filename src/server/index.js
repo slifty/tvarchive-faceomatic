@@ -477,36 +477,37 @@ function announceResults(fullResults, program) {
   for (let i = 0; i < displayTable.length; i += 1) {
     const label = displayTable[i].label
     const display = displayTable[i].display
+    let results = []
     if (label in processedResults) {
-      const results = processedResults[label]
-      if (results.length === 0) {
-        finalString += `\n:no_entry_sign: \`${display}\` Not Found`
-      } else {
-        finalString += `\n:white_check_mark: \`${display}\` Detected`
+      results = processedResults[label]
+    }
+    if (results.length === 0) {
+      finalString += `\n:no_entry_sign: \`${display}\` Not Found`
+    } else {
+      finalString += `\n:white_check_mark: \`${display}\` Detected`
 
-        let start = -1
-        let end = -1
+      let start = -1
+      let end = -1
 
-        const seconds = Object.keys(results)
-        for (let j = 0; j < seconds.length; j += 1) {
-          const second = seconds[j]
-          if (start === -1) {
-            start = second
-            end = second + 1
-          }
-
-          // Allow gaps of up to 3 seconds
-          if (second - end <= 3) {
-            end = second
-          } else {
-            finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
-            start = second
-            end = second
-          }
+      const seconds = Object.keys(results)
+      for (let j = 0; j < seconds.length; j += 1) {
+        const second = seconds[j]
+        if (start === -1) {
+          start = second
+          end = second + 1
         }
-        if (start !== -1) {
+
+        // Allow gaps of up to 3 seconds
+        if (second - end <= 3) {
+          end = second
+        } else {
           finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
+          start = second
+          end = second
         }
+      }
+      if (start !== -1) {
+        finalString += `\n * ${secondsToTime(start)} - ${secondsToTime(end)} <https://archive.org/details/${program.id}#start/${start}/end/${end}|(${end - start}s)>`
       }
     }
   }
@@ -637,6 +638,9 @@ function getDisplayValues(label) {
     },
     clinton_bill: {
       display: 'Test Face: Bill Clinton',
+    },
+    obama: {
+      display: 'Test Face: Barack Obama',
     },
     clinton_hillary: {
       display: 'Test Face: Hillary Clinton',
