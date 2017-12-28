@@ -1040,7 +1040,7 @@ schedule.scheduleJob('30 * * * *', () => {
 })
 
 // Set up scheduled processing of programs
-schedule.scheduleJob('* * * * *', () => {
+schedule.scheduleJob('*/3 * * * *', () => {
   console.log('Processing new programs...')
   const programIds = getUnprocessedProgramIds()
 
