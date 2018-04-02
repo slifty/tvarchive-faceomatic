@@ -58,8 +58,7 @@ app.get('/auth/redirect', (req, res) => {
 function getPrograms(callback) {
   // Look back a full month
   const today = moment()
-  today.subtract('month', 1)
-  const month = today.format('YYYY-MM')
+  const month = today.subtract(1, 'month').format('YYYY-MM')
 
   // Get a list of programs from the archive
   const options = {
