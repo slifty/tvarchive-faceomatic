@@ -1045,8 +1045,9 @@ schedule.scheduleJob('30 * * * *', () => {
 
 // Set up scheduled processing of programs
 schedule.scheduleJob('*/3 * * * *', () => {
-  console.log('Processing new programs...')
   const programIds = getUnprocessedProgramIds()
+
+  console.log(`Processing new programs... (${programIds.count})`)
 
   // We're only going to do one per minute for now, but this could
   // change
