@@ -62,7 +62,7 @@ function getPrograms(callback) {
 
   // Get a list of programs from the archive
   const options = {
-    uri: `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=2`,
+    uri: `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=2&mp4=1`,
     method: 'GET',
   }
 
