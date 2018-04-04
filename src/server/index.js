@@ -59,10 +59,11 @@ function getPrograms(callback) {
   // Look back a full month
   const today = moment()
   const month = today.subtract(2, 'month').format('YYYY-MM')
-
+  const url = `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=3&mp4=1`
+  console.log(url)
   // Get a list of programs from the archive
   const options = {
-    uri: `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=3&mp4=1`,
+    uri: url,
     method: 'GET',
   }
 
@@ -72,6 +73,7 @@ function getPrograms(callback) {
       callback(JSONresponse)
     } catch (err) {
       console.log('ERR: Getting program IDs from the archive.')
+      console.log(err)
     }
   })
 }
@@ -1038,6 +1040,7 @@ function registerNewPrograms() {
   console.log('Checking for unprocessed programs...')
   getPrograms((programIds) => {
     const programList = filterPrograms(programIds)
+    console.log(`${programIds.length} new programs found`)
     registerPrograms(programList)
   })
 }
