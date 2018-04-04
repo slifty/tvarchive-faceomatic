@@ -1043,14 +1043,11 @@ schedule.scheduleJob('30 * * * *', () => {
   })
 })
 
-// Set up scheduled processing of programs
-schedule.scheduleJob('*/3 * * * *', () => {
+function processNextProgram() {
   const programIds = getUnprocessedProgramIds()
 
   console.log(`Processing new programs... (${programIds.count})`)
 
-  // We're only going to do one per minute for now, but this could
-  // change
   for (let i = 0; i < Math.min(1, programIds.length); i += 1) {
     const programId = programIds[i]
     const paths = getPaths(programId)
@@ -1064,7 +1061,13 @@ schedule.scheduleJob('*/3 * * * *', () => {
       }
     })
   }
-})
+}
+
+// Set up scheduled processing of programs
+schedule.scheduleJob('*/3 * * * *', processNextProgram)
+
+// Do one right now
+processNextProgram()
 
 // Set up scheduled generation of the csv
 schedule.scheduleJob('0 * * * *', () => {
