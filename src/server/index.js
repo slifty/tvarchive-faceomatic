@@ -1034,14 +1034,16 @@ function deployData(deployFile, targetFile) {
   })
 }
 
-// Set up scheduled download of program IDs
-schedule.scheduleJob('30 * * * *', () => {
+function registerNewPrograms() {
   console.log('Checking for unprocessed programs...')
   getPrograms((programIds) => {
     const programList = filterPrograms(programIds)
     registerPrograms(programList)
   })
-})
+}
+
+// Set up scheduled download of program IDs
+schedule.scheduleJob('30 * * * *', registerNewPrograms)
 
 function processNextProgram() {
   const programIds = getUnprocessedProgramIds()
@@ -1066,7 +1068,8 @@ function processNextProgram() {
 // Set up scheduled processing of programs
 schedule.scheduleJob('*/3 * * * *', processNextProgram)
 
-// Do one right now
+// Do program stuff right now
+registerNewPrograms()
 processNextProgram()
 
 // Set up scheduled generation of the csv
