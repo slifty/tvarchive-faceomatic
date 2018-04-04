@@ -58,11 +58,11 @@ app.get('/auth/redirect', (req, res) => {
 function getPrograms(callback) {
   // Look back a full month
   const today = moment()
-  const month = today.subtract(1, 'month').format('YYYY-MM')
+  const month = today.subtract(2, 'month').format('YYYY-MM')
 
   // Get a list of programs from the archive
   const options = {
-    uri: `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=2&mp4=1`,
+    uri: `https://archive.org/details/tv?weekshows&output=json&audmonth=${month}&months=3&mp4=1`,
     method: 'GET',
   }
 
