@@ -1046,7 +1046,7 @@ schedule.scheduleJob('30 * * * *', () => {
 function processNextProgram() {
   const programIds = getUnprocessedProgramIds()
 
-  console.log(`Processing new programs... (${programIds.count})`)
+  console.log(`Processing new programs... (${programIds.length})`)
 
   for (let i = 0; i < Math.min(1, programIds.length); i += 1) {
     const programId = programIds[i]
