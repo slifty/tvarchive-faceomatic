@@ -573,6 +573,14 @@ function processProgram(program) {
         announceResults(fullResults, program)
         fs.renameSync(paths.processingPath, paths.processedPath)
 
+        try {
+          const finalProgram = program
+          finalProgram.modelId = process.env.MATROID_DETECTOR_ID
+          fs.writeFileSync(paths.processedPath, JSON.stringify(finalProgram))
+        } catch (e) {
+          console.log(`Couldn't add model ID to program: ${program.id}`)
+        }
+
         // Clean up the video file
         fs.unlinkSync(paths.videoPath)
       }
@@ -935,6 +943,7 @@ function generateProgramCSV(filestem) {
     'Air Time',
     'Program',
     'Duration',
+    'model ID',
   ]
 
   // Set up the CSV Pipeline
